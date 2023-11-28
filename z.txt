@@ -1,0 +1,70 @@
+in local there is no error 
+but only getting when use in gitpod
+```Error
+Access to fetch at 'https://3000-techsnippet-nextcorsapi-v930s9nuvok.ws-us106.gitpod.io/api/cors' from origin 'https://3001-techsnippet-nextcorsapi-v930s9nuvok.ws-us106.gitpod.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. If an opaque response serves your needs, set the request's mode to 'no-cors' to fetch the resource with CORS disabled.
+GET https://3000-techsnippet-nextcorsapi-v930s9nuvok.ws-us106.gitpod.io/api/cors net::ERR_FAILED 401 (Unauthorized)
+```
+```/api/cors.ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+import Cors from 'cors'
+
+// Initializing the cors middleware
+// You can read more about the available options here: https://github.com/expressjs/cors#configuration-options
+const cors = Cors({
+  methods: ['POST', 'GET', 'HEAD'],
+  origin: "*",
+  optionsSuccessStatus: 200
+})
+
+// Helper method to wait for a middleware to execute before continuing
+// And to throw an error when an error happens in a middleware
+function runMiddleware(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  fn: Function
+) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result: any) => {
+      if (result instanceof Error) {
+        return reject(result)
+      }
+
+      return resolve(result)
+    })
+  })
+}
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  // Run the middleware
+  await runMiddleware(req, res, cors)
+
+  // Rest of the API logic
+  res.json({ message: 'Hello Everyone!' })
+}
+```
+```page.tsx
+"use client"
+// const API = "http://localhost:3000"
+const API = "https://3000-techsnippet-nextcorsapi-v930s9nuvok.ws-us106.gitpod.io"
+import React from "react";
+export default function Home() {
+  const [message, setMessage] = React.useState("message will appare here");
+  const GET = async function(){
+    console.log(API)
+    fetch(`${API}/api/cors`).then((data)=>{
+      data.json().then((value: {message: string})=>{
+        setMessage(value.message)
+      })
+      // data.json().then((message)=>{
+      //   setMessage(message ? message : "error no api message" )
+      // })
+    })
+  }
+  return <>
+    <div className="" onClick={() => GET()}>Message: {message}</div>
+  </>
+}
+```
